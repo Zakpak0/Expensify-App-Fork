@@ -1,10 +1,3 @@
-import {useIsFocused} from '@react-navigation/native';
-import {Str} from 'expensify-common';
-import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import AppleSignIn from '@components/SignInButtons/AppleSignIn';
@@ -12,33 +5,42 @@ import GoogleSignIn from '@components/SignInButtons/GoogleSignIn';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import isTextInputFocused from '@components/TextInput/BaseTextInput/isTextInputFocused';
-import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import type { BaseTextInputRef } from '@components/TextInput/BaseTextInput/types';
+import type { WithToggleVisibilityViewProps } from '@components/withToggleVisibilityView';
 import withToggleVisibilityView from '@components/withToggleVisibilityView';
-import type {WithToggleVisibilityViewProps} from '@components/withToggleVisibilityView';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
-import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import isInputAutoFilled from '@libs/isInputAutoFilled';
 import * as LoginUtils from '@libs/LoginUtils';
-import {parsePhoneNumber} from '@libs/PhoneNumber';
+import { parsePhoneNumber } from '@libs/PhoneNumber';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
-import * as CloseAccount from '@userActions/CloseAccount';
-import * as Session from '@userActions/Session';
+import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
+import isInputAutoFilled from '@libs/isInputAutoFilled';
+import { useIsFocused } from '@react-navigation/native';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CloseAccountForm} from '@src/types/form';
-import type {Account, Credentials} from '@src/types/onyx';
+import type { CloseAccountForm } from '@src/types/form';
+import type { Account, Credentials } from '@src/types/onyx';
 import htmlDivElementRef from '@src/types/utils/htmlDivElementRef';
 import viewRef from '@src/types/utils/viewRef';
+import * as CloseAccount from '@userActions/CloseAccount';
+import * as Session from '@userActions/Session';
+import { Str } from 'expensify-common';
+import type { ForwardedRef } from 'react';
+import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
+import { InteractionManager, View } from 'react-native';
+import type { OnyxEntry } from 'react-native-onyx';
+import { withOnyx } from 'react-native-onyx';
 import type LoginFormProps from './types';
-import type {InputHandle} from './types';
+import type { InputHandle } from './types';
+import useTranslation, { useMultipleTranslations } from '@hooks/useTranslation';
+import { TranslationPaths } from '@src/languages/types';
 
 type BaseLoginFormOnyxProps = {
     /** The details about the account that the user is signing in with */
@@ -53,27 +55,34 @@ type BaseLoginFormOnyxProps = {
 
 type BaseLoginFormProps = WithToggleVisibilityViewProps & BaseLoginFormOnyxProps & LoginFormProps;
 
-function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false, isVisible}: BaseLoginFormProps, ref: ForwardedRef<InputHandle>) {
+function BaseLoginForm({ account, credentials, closeAccount, blurOnSubmit = false, isVisible }: BaseLoginFormProps, ref: ForwardedRef<InputHandle>) {
     const styles = useThemeStyles();
-    const {isOffline} = useNetwork();
-    const {translate} = useLocalize();
+    const { isOffline } = useNetwork();
+    const { translate } = useLocalize();
     const input = useRef<BaseTextInputRef | null>(null);
     const [login, setLogin] = useState(() => Str.removeSMSDomain(credentials?.login ?? ''));
-    const [formError, setFormError] = useState<string | undefined>();
+    const { translation: formError, setPhrase: setFormError } = useTranslation()
+    // const { translations: { formError }, dispatch } = useMultipleTranslations({
+    //     formError: "common.action"
+    // })
+    // const setFormError = (error: TranslationPaths | undefined) => dispatch({
+    //     type: "formError",
+    //     payload: error
+    // })
+    
     const prevIsVisible = usePrevious(isVisible);
     const firstBlurred = useRef(false);
     const isFocused = useIsFocused();
     const isLoading = useRef(false);
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
-
     /**
      * Validate the input value and set the error for formError
-     */
-    const validate = useCallback(
-        (value: string) => {
+    */
+   const validate = useCallback(
+       (value: string) => {
             const loginTrim = value.trim();
             if (!loginTrim) {
-                setFormError(translate('common.pleaseEnterEmailOrPhoneNumber'));
+                setFormError('common.pleaseEnterEmailOrPhoneNumber');
                 return false;
             }
 
@@ -82,9 +91,9 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
 
             if (!Str.isValidEmail(loginTrim) && !parsedPhoneNumber.possible) {
                 if (ValidationUtils.isNumericWithSpecialChars(loginTrim)) {
-                    setFormError(translate('common.error.phoneNumber'));
+                    setFormError('common.error.phoneNumber');
                 } else {
-                    setFormError(translate('loginForm.error.invalidFormatEmailLogin'));
+                    setFormError('loginForm.error.invalidFormatEmailLogin');
                 }
                 return false;
             }
@@ -92,7 +101,7 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
             setFormError(undefined);
             return true;
         },
-        [setFormError, translate],
+        [setFormError],
     );
 
     /**

@@ -2462,6 +2462,7 @@ function enablePolicyConnections(policyID: string, enabled: boolean) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
+                    areConnectionsEnabled: enabled,
                     pendingFields: {
                         areConnectionsEnabled: null,
                     },
@@ -2481,7 +2482,6 @@ function enablePolicyConnections(policyID: string, enabled: boolean) {
             },
         ],
     };
-
     const parameters: EnablePolicyConnectionsParams = {policyID, enabled};
 
     API.write(WRITE_COMMANDS.ENABLE_POLICY_CONNECTIONS, parameters, onyxData);

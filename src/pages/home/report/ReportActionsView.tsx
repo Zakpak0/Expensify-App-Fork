@@ -101,7 +101,10 @@ function ReportActionsView({
     useCopySelectionHelper();
     const reactionListRef = useContext(ReactionListContext);
     const route = useRoute<RouteProp<AuthScreensParamList, typeof SCREENS.REPORT>>();
-    const reportActionID = route?.params?.reportActionID;
+    const reportActionID = useMemo(() => {
+        const reportAction = allReportActions.find((obj) => (String(obj.reportActionID) === String(route?.params?.reportActionID)))
+       return reportAction && ReportActionsUtils.isDeletedParentAction(reportAction) ? undefined : route?.params?.reportActionID
+    },[allReportActions])
     const didLayout = useRef(false);
     const didLoadOlderChats = useRef(false);
     const didLoadNewerChats = useRef(false);
@@ -126,8 +129,8 @@ function ReportActionsView({
         if (!shouldFetchReport(report)) {
             return;
         }
-
-        Report.openReport(reportID, reportActionID);
+        
+            Report.openReport(reportID, reportActionID);
     };
 
     useEffect(() => {

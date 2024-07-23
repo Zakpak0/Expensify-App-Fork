@@ -1056,7 +1056,10 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>) {
     Report.notifyNewAction(report.reportID, currentUserAccountID);
 
     if (shouldDeleteTaskReport) {
-        Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(parentReport?.reportID ?? '-1'));
+        Navigation.isNavigationReady().then(() => {
+            Navigation.goBack(ROUTES.HOME)
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(parentReport?.reportID ?? '-1'));
+        })
     }
 }
 

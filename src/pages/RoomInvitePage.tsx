@@ -191,6 +191,7 @@ function RoomInvitePage({
             Report.inviteToRoom(reportID, invitedEmailsToAccountIDs);
         }
         SearchInputManager.searchInput = '';
+        Navigation.dismissModal(reportID ?? "-1")
         Navigation.navigate(backRoute);
     }, [selectedOptions, backRoute, reportID, validate]);
 

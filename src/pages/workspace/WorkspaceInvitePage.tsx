@@ -266,6 +266,7 @@ function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, poli
             invitedEmailsToAccountIDs[login] = Number(accountID);
         });
         Member.setWorkspaceInviteMembersDraft(route.params.policyID, invitedEmailsToAccountIDs);
+        Navigation.dismissModal()
         Navigation.navigate(ROUTES.WORKSPACE_INVITE_MESSAGE.getRoute(route.params.policyID));
     }, [route.params.policyID, selectedOptions]);
 

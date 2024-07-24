@@ -3807,7 +3807,8 @@ function trackExpense(
     Navigation.dismissModal(activeReportID);
 
     if (action === CONST.IOU.ACTION.SHARE) {
-        Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(activeReportID ?? '-1', CONST.IOU.SHARE.ROLE.ACCOUNTANT));
+            Navigation.dismissModal(linkedTrackedExpenseReportID ?? "-1")
+            Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(activeReportID ?? '-1', CONST.IOU.SHARE.ROLE.ACCOUNTANT));
     }
 
     Report.notifyNewAction(activeReportID ?? '', payeeAccountID);
@@ -4731,8 +4732,8 @@ function startSplitBill({
         taxAmount,
     };
 
-    API.write(WRITE_COMMANDS.START_SPLIT_BILL, parameters, {optimisticData, successData, failureData});
-
+    API.write(WRITE_COMMANDS.START_SPLIT_BILL, parameters, { optimisticData, successData, failureData });
+    
     Navigation.dismissModalWithReport(splitChatReport);
     Report.notifyNewAction(splitChatReport.reportID ?? '-1', currentUserAccountID);
 }

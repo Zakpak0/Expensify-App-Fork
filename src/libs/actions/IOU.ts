@@ -3804,12 +3804,14 @@ function trackExpense(
             API.write(WRITE_COMMANDS.TRACK_EXPENSE, parameters, onyxData);
         }
     }
-    Navigation.dismissModal(activeReportID);
-
-    if (action === CONST.IOU.ACTION.SHARE) {
-            Navigation.dismissModal(linkedTrackedExpenseReportID ?? "-1")
-            Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(activeReportID ?? '-1', CONST.IOU.SHARE.ROLE.ACCOUNTANT));
+    if (action == CONST.IOU.ACTION.SHARE) {
+    Navigation.dismissModal(linkedTrackedExpenseReportID)
     }
+    Navigation.dismissModal(activeReportID);
+    if (action === CONST.IOU.ACTION.SHARE) {
+        Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(activeReportID ?? '-1', CONST.IOU.SHARE.ROLE.ACCOUNTANT));
+    }
+
 
     Report.notifyNewAction(activeReportID ?? '', payeeAccountID);
 }

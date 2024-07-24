@@ -1686,17 +1686,38 @@ function updateNotificationPreference(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {notificationPreference: newValue},
+            value: {
+                notificationPreference: newValue,
+                pendingFields: {
+                    notificationPreference: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE
+                }
+            },
         },
     ];
-
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                pendingFields: {
+                    notificationPreference: null
+                }
+            },
+        },
+    ];
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {notificationPreference: previousValue},
+            value: {
+                notificationPreference: previousValue,
+                pendingFields: {
+                    notificationPreference: null
+                } 
+            },
         },
     ];
+
 
     if (parentReportID && parentReportActionID) {
         optimisticData.push({
@@ -1713,7 +1734,7 @@ function updateNotificationPreference(
 
     const parameters: UpdateReportNotificationPreferenceParams = {reportID, notificationPreference: newValue};
 
-    API.write(WRITE_COMMANDS.UPDATE_REPORT_NOTIFICATION_PREFERENCE, parameters, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.UPDATE_REPORT_NOTIFICATION_PREFERENCE, parameters, {optimisticData, successData, failureData});
     if (navigate && !isEmptyObject(report)) {
         ReportUtils.goBackToDetailsPage(report);
     }
@@ -2688,7 +2709,6 @@ function leaveGroupChat(reportID: string) {
             value: null,
         });
     }
-
     navigateToMostRecentReport(report);
     API.write(WRITE_COMMANDS.LEAVE_GROUP_CHAT, {reportID}, {optimisticData});
 }
@@ -2767,7 +2787,6 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
             value: {[report.parentReportActionID]: {childReportNotificationPreference: report.notificationPreference}},
         });
     }
-
     const parameters: LeaveRoomParams = {
         reportID,
     };

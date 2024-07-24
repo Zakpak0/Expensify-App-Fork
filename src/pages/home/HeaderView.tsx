@@ -1,4 +1,4 @@
-import React, {memo} from 'react';
+import React, {memo, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -103,8 +103,13 @@ function HeaderView({report, personalDetails, parentReport, parentReportAction, 
     };
 
     const join = Session.checkIfActionIsAllowed(() => Report.joinRoom(report));
-
-    const canJoin = ReportUtils.canJoinChat(report, parentReportAction, policy);
+    const isPendingNotificationUpdate = report?.pendingFields?.notificationPreference
+    const canJoin = useMemo(() => {
+        if (isPendingNotificationUpdate) {
+            return false
+        }
+        return ReportUtils.canJoinChat(report, parentReportAction, policy);
+    }, [isPendingNotificationUpdate]) 
 
     const joinButton = (
         <Button

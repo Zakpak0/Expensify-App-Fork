@@ -1,8 +1,3 @@
-import {format} from 'date-fns';
-import {fastMerge, Str} from 'expensify-common';
-import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
 import * as API from '@libs/API';
 import type {
@@ -28,14 +23,14 @@ import type {
     UnapproveExpenseReportParams,
     UpdateMoneyRequestParams,
 } from '@libs/API/parameters';
-import {WRITE_COMMANDS} from '@libs/API/types';
+import { WRITE_COMMANDS } from '@libs/API/types';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import * as IOUUtils from '@libs/IOUUtils';
-import {toLocaleDigit} from '@libs/LocaleDigitUtils';
+import { toLocaleDigit } from '@libs/LocaleDigitUtils';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
@@ -45,24 +40,29 @@ import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportConnection from '@libs/ReportConnection';
-import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction, TransactionDetails} from '@libs/ReportUtils';
+import type { OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction, TransactionDetails } from '@libs/ReportUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
-import type {IOUAction, IOUType} from '@src/CONST';
+import type { IOUAction, IOUType } from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {Participant, Split} from '@src/types/onyx/IOU';
-import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
-import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import type { Participant, Split } from '@src/types/onyx/IOU';
+import type { ErrorFields, Errors } from '@src/types/onyx/OnyxCommon';
+import type { PaymentMethodType } from '@src/types/onyx/OriginalMessage';
 import type ReportAction from '@src/types/onyx/ReportAction';
-import type {OnyxData} from '@src/types/onyx/Request';
-import type {Comment, Receipt, ReceiptSource, Routes, SplitShares, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
+import type { OnyxData } from '@src/types/onyx/Request';
+import type { Comment, Receipt, ReceiptSource, Routes, SplitShares, TransactionChanges, WaypointCollection } from '@src/types/onyx/Transaction';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import { isEmptyObject } from '@src/types/utils/EmptyObject';
+import { format } from 'date-fns';
+import { fastMerge, Str } from 'expensify-common';
+import type { NullishDeep, OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate } from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
+import type { ValueOf } from 'type-fest';
 import * as CachedPDFPaths from './CachedPDFPaths';
 import * as Category from './Policy/Category';
 import * as Policy from './Policy/Policy';
@@ -3804,15 +3804,21 @@ function trackExpense(
             API.write(WRITE_COMMANDS.TRACK_EXPENSE, parameters, onyxData);
         }
     }
-    if (action == CONST.IOU.ACTION.SHARE) {
-    Navigation.dismissModal(linkedTrackedExpenseReportID)
+    switch (action) {
+        case CONST.IOU.ACTION.SHARE: {
+            Navigation.dismissModal(linkedTrackedExpenseReportID)
+            Navigation.isNavigationReady().then(() => { 
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(activeReportID ?? "-1"))
+                Navigation.isNavigationReady().then(() => {
+                Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(activeReportID ?? '-1', CONST.IOU.SHARE.ROLE.ACCOUNTANT));
+                })      
+            })
+            break
+        }
+        default: {
+            Navigation.dismissModal(activeReportID);
+        }
     }
-    Navigation.dismissModal(activeReportID);
-    if (action === CONST.IOU.ACTION.SHARE) {
-        Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(activeReportID ?? '-1', CONST.IOU.SHARE.ROLE.ACCOUNTANT));
-    }
-
-
     Report.notifyNewAction(activeReportID ?? '', payeeAccountID);
 }
 
@@ -7441,8 +7447,7 @@ export {
     dismissHoldUseExplanation,
     editMoneyRequest,
     getIOURequestPolicyID,
-    initMoneyRequest,
-    navigateToStartStepIfScanFileCannotBeRead,
+    initMoneyRequest, mergeDuplicates, navigateToStartStepIfScanFileCannotBeRead,
     payInvoice,
     payMoneyRequest,
     putOnHold,
@@ -7490,7 +7495,7 @@ export {
     updateMoneyRequestMerchant,
     updateMoneyRequestTag,
     updateMoneyRequestTaxAmount,
-    updateMoneyRequestTaxRate,
-    mergeDuplicates,
+    updateMoneyRequestTaxRate
 };
-export type {GPSPoint as GpsPoint, IOURequestType};
+export type { GPSPoint as GpsPoint, IOURequestType };
+

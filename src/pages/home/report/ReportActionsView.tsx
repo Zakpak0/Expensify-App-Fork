@@ -1,38 +1,38 @@
-import type {RouteProp} from '@react-navigation/native';
-import {useIsFocused, useRoute} from '@react-navigation/native';
-import lodashIsEqual from 'lodash/isEqual';
-import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import {InteractionManager} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useInitialValue from '@hooks/useInitialValue';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import DateUtils from '@libs/DateUtils';
-import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
-import type {AuthScreensParamList} from '@libs/Navigation/types';
+import type { AuthScreensParamList } from '@libs/Navigation/types';
 import * as NumberUtils from '@libs/NumberUtils';
-import {generateNewRandomInt} from '@libs/NumberUtils';
+import { generateNewRandomInt } from '@libs/NumberUtils';
 import Performance from '@libs/Performance';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import {isUserCreatedPolicyRoom} from '@libs/ReportUtils';
-import {didUserLogInDuringSession} from '@libs/SessionUtils';
+import { isUserCreatedPolicyRoom } from '@libs/ReportUtils';
+import { didUserLogInDuringSession } from '@libs/SessionUtils';
+import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
 import shouldFetchReport from '@libs/shouldFetchReport';
-import {ReactionListContext} from '@pages/home/ReportScreenContext';
-import * as Report from '@userActions/Report';
-import Timing from '@userActions/Timing';
+import { ReactionListContext } from '@pages/home/ReportScreenContext';
+import type { RouteProp } from '@react-navigation/native';
+import { useIsFocused, useRoute } from '@react-navigation/native';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import getInitialPaginationSize from './getInitialPaginationSize';
+import { isEmptyObject } from '@src/types/utils/EmptyObject';
+import * as Report from '@userActions/Report';
+import Timing from '@userActions/Timing';
+import lodashIsEqual from 'lodash/isEqual';
+import React, { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { InteractionManager } from 'react-native';
+import type { OnyxEntry } from 'react-native-onyx';
+import { useOnyx } from 'react-native-onyx';
 import PopoverReactionList from './ReactionList/PopoverReactionList';
 import ReportActionsList from './ReportActionsList';
 import UserTypingEventListener from './UserTypingEventListener';
+import getInitialPaginationSize from './getInitialPaginationSize';
 
 type ReportActionsViewOnyxProps = {
     /** Session info for the currently logged in user. */
@@ -85,11 +85,8 @@ let listOldID = Math.round(Math.random() * 100);
 
 function ReportActionsView({
     report,
-    transactionThreadReport,
-    session,
     parentReportAction,
     reportActions: allReportActions = [],
-    transactionThreadReportActions = [],
     isLoadingInitialReportActions = false,
     isLoadingOlderReportActions = false,
     hasLoadingOlderReportActionsError = false,
@@ -98,6 +95,17 @@ function ReportActionsView({
     isReadyForCommentLinking = false,
     transactionThreadReportID,
 }: ReportActionsViewProps) {
+    const [transactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+        {
+            canEvict: false,
+        },
+        ({ reportActions }) => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, true))
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`,
+        {
+            initialValue: {}
+        }
+    )
+    const [session] = useOnyx(ONYXKEYS.SESSION)
     useCopySelectionHelper();
     const reactionListRef = useContext(ReactionListContext);
     const route = useRoute<RouteProp<AuthScreensParamList, typeof SCREENS.REPORT>>();
@@ -566,19 +574,4 @@ function arePropsEqual(oldProps: ReportActionsViewProps, newProps: ReportActions
 
 const MemoizedReportActionsView = React.memo(ReportActionsView, arePropsEqual);
 
-export default Performance.withRenderTrace({id: '<ReportActionsView> rendering'})(
-    withOnyx<ReportActionsViewProps, ReportActionsViewOnyxProps>({
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-        transactionThreadReportActions: {
-            key: ({transactionThreadReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
-            canEvict: false,
-            selector: (reportActions: OnyxEntry<OnyxTypes.ReportActions>) => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, true),
-        },
-        transactionThreadReport: {
-            key: ({transactionThreadReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`,
-            initialValue: {} as OnyxTypes.Report,
-        },
-    })(MemoizedReportActionsView),
-);
+export default Performance.withRenderTrace({id: '<ReportActionsView> rendering'})(MemoizedReportActionsView);

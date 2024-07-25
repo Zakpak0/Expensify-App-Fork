@@ -3832,7 +3832,7 @@ function trackExpense(
     Navigation.dismissModal(activeReportID);
 
     if (action === CONST.IOU.ACTION.SHARE) {
-        Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(activeReportID ?? '-1', CONST.IOU.SHARE.ROLE.ACCOUNTANT));
+            Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(activeReportID ?? '-1', CONST.IOU.SHARE.ROLE.ACCOUNTANT));
     }
 
     Report.notifyNewAction(activeReportID ?? '', payeeAccountID);
@@ -4756,8 +4756,8 @@ function startSplitBill({
         taxAmount,
     };
 
-    API.write(WRITE_COMMANDS.START_SPLIT_BILL, parameters, {optimisticData, successData, failureData});
-
+    API.write(WRITE_COMMANDS.START_SPLIT_BILL, parameters, { optimisticData, successData, failureData });
+    
     Navigation.dismissModalWithReport(splitChatReport);
     Report.notifyNewAction(splitChatReport.reportID ?? '-1', currentUserAccountID);
 }
@@ -6960,8 +6960,12 @@ function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.R
     // Expensify Wallets.
     const apiCommand = paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? WRITE_COMMANDS.PAY_MONEY_REQUEST_WITH_WALLET : WRITE_COMMANDS.PAY_MONEY_REQUEST;
 
-    API.write(apiCommand, params, {optimisticData, successData, failureData});
-    Navigation.dismissModalWithReport(chatReport);
+    
+    API.write(apiCommand, params, { optimisticData, successData, failureData });
+    Navigation.isNavigationReady().then(() => {
+        Navigation.dismissModalWithReport(chatReport);
+        Report.notifyNewAction(chatReport.reportID)
+    })
 }
 
 function payInvoice(paymentMethodType: PaymentMethodType, chatReport: OnyxTypes.Report, invoiceReport: OnyxTypes.Report) {

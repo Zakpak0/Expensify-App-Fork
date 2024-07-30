@@ -282,14 +282,14 @@ const ContextMenuActions: ContextMenuAction[] = [
         icon: Expensicons.Stopwatch,
         shouldShow: (type, reportAction) =>
             type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && ReportUtils.canEditReportAction(reportAction) && ReportUtils.canHoldUnholdReportAction(reportAction).canHoldRequest,
-        onPress: (closePopover, {reportAction}) => {
+        onPress: (closePopover, { reportAction, reportID}) => {
             if (closePopover) {
-                hideContextMenu(false, () => ReportUtils.changeMoneyRequestHoldStatus(reportAction));
+                hideContextMenu(false, () => ReportUtils.changeMoneyRequestHoldStatus(reportAction, ROUTES.REPORT_WITH_ID.getRoute(reportID ?? "-1")));
                 return;
             }
 
             // No popover to hide, call changeMoneyRequestHoldStatus immediately
-            ReportUtils.changeMoneyRequestHoldStatus(reportAction);
+            ReportUtils.changeMoneyRequestHoldStatus(reportAction, ROUTES.REPORT_WITH_ID.getRoute(reportID ?? "-1"));
         },
         getDescription: () => {},
     },

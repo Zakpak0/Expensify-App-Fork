@@ -28,7 +28,7 @@ function SignInModal({session}: SignInModalProps) {
         if (!isAnonymousUser) {
             // Signing in RHP is only for anonymous users
             Navigation.isNavigationReady().then(() => Navigation.dismissModal());
-            App.openApp();
+            App.reconnectApp();
         }
     }, [session?.authTokenType]);
 

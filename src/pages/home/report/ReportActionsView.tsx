@@ -140,10 +140,6 @@ function ReportActionsView({
         Report.updateLoadingInitialReportAction(report.reportID);
     }, [isOffline, report.reportID, reportActionID]);
 
-    useLayoutEffect(() => {
-        setCurrentReportActionID('');
-    }, [route]);
-
     // Change the list ID only for comment linking to get the positioning right
     const listID = useMemo(() => {
         if (!reportActionID) {

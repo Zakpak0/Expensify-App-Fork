@@ -131,7 +131,6 @@ function ReportActionsView({
 
         Report.openReport(reportID, reportActionID);
     };
-
     useEffect(() => {
         // When we linked to message - we do not need to wait for initial actions - they already exists
         if (!reportActionID || !isOffline) {
@@ -146,14 +145,15 @@ function ReportActionsView({
             // Keep the old list ID since we're not in the Comment Linking flow
             return listOldID;
         }
-        isFirstLinkedActionRender.current = true;
+        if (currentReportActionID.length > 0) {   
+            isFirstLinkedActionRender.current = true;
+        }
         const newID = generateNewRandomInt(listOldID, 1, Number.MAX_SAFE_INTEGER);
         // eslint-disable-next-line react-compiler/react-compiler
         listOldID = newID;
         return newID;
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [route, isLoadingInitialReportActions, reportActionID]);
-
     // When we are offline before opening an IOU/Expense report,
     // the total of the report and sometimes the expense aren't displayed because these actions aren't returned until `OpenReport` API is complete.
     // We generate a fake created action here if it doesn't exist to display the total whenever possible because the total just depends on report data
@@ -229,31 +229,29 @@ function ReportActionsView({
         [allReportActions, transactionThreadReportActions, transactionThreadReport?.parentReportActionID],
     );
 
-    const indexOfLinkedAction = useMemo(() => {
+    const indexOfCurrentAction = useMemo(() => {
         if (!reportActionID) {
             return -1;
         }
         return combinedReportActions.findIndex((obj) => String(obj.reportActionID) === String(isFirstLinkedActionRender.current ? reportActionID : currentReportActionID));
     }, [combinedReportActions, currentReportActionID, reportActionID]);
-
     const reportActions = useMemo(() => {
         if (!reportActionID) {
             return combinedReportActions;
         }
-        if (isLoading || indexOfLinkedAction === -1) {
+        if (isLoading || indexOfCurrentAction === -1) {
             return [];
         }
 
         if (isFirstLinkedActionRender.current) {
-            return combinedReportActions.slice(indexOfLinkedAction);
+            return combinedReportActions.slice(indexOfCurrentAction);
         }
         const paginationSize = getInitialPaginationSize;
-        return combinedReportActions.slice(Math.max(indexOfLinkedAction - paginationSize, 0));
+        return combinedReportActions.slice(Math.max(indexOfCurrentAction - paginationSize, 0));
 
         // currentReportActionID is needed to trigger batching once the report action has been positioned
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [reportActionID, combinedReportActions, indexOfLinkedAction, isLoading, currentReportActionID]);
-
+    }, [reportActionID, combinedReportActions, indexOfCurrentAction, isLoading, currentReportActionID]);
     const reportActionIDMap = useMemo(() => {
         const reportActionIDs = allReportActions.map((action) => action.reportActionID);
         return reportActions.map((action) => ({
@@ -412,7 +410,7 @@ function ReportActionsView({
 
             didLoadNewerChats.current = true;
 
-            if ((reportActionID && indexOfLinkedAction > -1 && !isLoadingOlderReportsFirstNeeded) || (!reportActionID && !isLoadingOlderReportsFirstNeeded)) {
+            if ((reportActionID && indexOfCurrentAction > -1 && !isLoadingOlderReportsFirstNeeded) || (!reportActionID && !isLoadingOlderReportsFirstNeeded)) {
                 handleReportActionPagination({firstReportActionID: newestReportAction?.reportActionID});
             }
         },
@@ -421,7 +419,7 @@ function ReportActionsView({
             isLoadingNewerReportActions,
             checkIfContentSmallerThanList,
             reportActionID,
-            indexOfLinkedAction,
+            indexOfCurrentAction,
             handleReportActionPagination,
             reportActions.length,
             newestReportAction,
